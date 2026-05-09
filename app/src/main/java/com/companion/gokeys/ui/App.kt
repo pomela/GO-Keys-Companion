@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Cable
@@ -89,11 +90,21 @@ fun App(vm: CompanionViewModel) {
 
     Scaffold(
         topBar = {
+            val onHelp = currentRoute == "help"
             TopAppBar(
                 title = { Text(stringResource(R.string.title_app), style = MaterialTheme.typography.titleLarge) },
+                navigationIcon = {
+                    if (onHelp) {
+                        IconButton(onClick = { nav.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        }
+                    }
+                },
                 actions = {
-                    IconButton(onClick = { nav.navigate("help") }) {
-                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.cd_help))
+                    if (!onHelp) {
+                        IconButton(onClick = { nav.navigate("help") }) {
+                            Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.cd_help))
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -118,18 +129,18 @@ fun App(vm: CompanionViewModel) {
                         isConnect -> Destructive
                         else -> mainColor
                     }
+                    val showColor = isSelected || isConnect
                     Column(
                         Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(
-                                if (isSelected) itemColor.copy(alpha = 0.18f)
+                                if (showColor) itemColor.copy(alpha = 0.18f)
                                 else MaterialTheme.colorScheme.surfaceVariant
                             )
-                            .border(
-                                1.dp,
-                                if (isSelected) itemColor else MaterialTheme.colorScheme.outline,
-                                RoundedCornerShape(10.dp),
+                            .then(
+                                if (isSelected) Modifier.border(1.dp, itemColor, RoundedCornerShape(10.dp))
+                                else Modifier
                             )
                             .clickable {
                                 nav.navigate(item.route) {
@@ -144,13 +155,13 @@ fun App(vm: CompanionViewModel) {
                         Icon(
                             item.icon,
                             contentDescription = null,
-                            tint = if (isSelected) itemColor else MaterialTheme.colorScheme.onSurface,
+                            tint = if (showColor) itemColor else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = stringResource(item.labelRes),
-                            color = if (isSelected) itemColor else MaterialTheme.colorScheme.onSurface,
+                            color = if (showColor) itemColor else MaterialTheme.colorScheme.onSurface,
                             fontSize = 9.sp,
                             maxLines = 1,
                             softWrap = false,
