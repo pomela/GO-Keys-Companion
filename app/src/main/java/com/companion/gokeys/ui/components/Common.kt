@@ -58,11 +58,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.companion.gokeys.ui.theme.Border
-import com.companion.gokeys.ui.theme.MutedSurface
-import com.companion.gokeys.ui.theme.Primary
-import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Success
-import com.companion.gokeys.ui.theme.SurfaceVariant
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -170,8 +166,9 @@ fun ExpandableSectionCard(
 @Composable
 fun ModelBadge(label: String) {
     val isKeys = label.contains("KEYS", ignoreCase = true)
-    val bg = if (isKeys) Primary.copy(alpha = 0.18f) else Color(0xFFB07A2A).copy(alpha = 0.22f)
-    val fg = if (isKeys) Primary else Color(0xFFE0A04A)
+    val mainColor = MaterialTheme.colorScheme.primary
+    val bg = if (isKeys) mainColor.copy(alpha = 0.18f) else Color(0xFFB07A2A).copy(alpha = 0.22f)
+    val fg = if (isKeys) mainColor else Color(0xFFE0A04A)
     Box(
         Modifier
             .clip(RoundedCornerShape(8.dp))
@@ -275,8 +272,7 @@ fun LabeledSlider(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.weight(1f)) {
-            val thumbColor = LocalSliderThumb.current
-            val trackColor = MaterialTheme.colorScheme.primary
+            val mainColor = MaterialTheme.colorScheme.primary
             val surfVariant = MaterialTheme.colorScheme.surfaceVariant
             Slider(
                 state = sliderState,
@@ -284,21 +280,21 @@ fun LabeledSlider(
                 thumb = {
                     Box(
                         Modifier
-                            .width(6.dp)
-                            .height(37.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(thumbColor),
+                            .width(24.dp)
+                            .height(28.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(mainColor),
                     )
                 },
                 track = { state ->
                     SliderDefaults.Track(
                         sliderState = state,
-                        modifier = Modifier.height(8.dp),
+                        modifier = Modifier.height(24.dp),
                         thumbTrackGapSize = 0.dp,
                         colors = SliderDefaults.colors(
-                            activeTrackColor = trackColor.copy(alpha = 0.75f),
+                            activeTrackColor = mainColor.copy(alpha = 0.85f),
                             inactiveTrackColor = surfVariant,
-                            thumbColor = thumbColor,
+                            thumbColor = mainColor,
                         ),
                     )
                 },
@@ -328,7 +324,7 @@ fun LabeledSlider(
                 Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(SurfaceVariant)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onReset() },
                 contentAlignment = Alignment.Center,
             ) {
@@ -378,7 +374,7 @@ fun LazyColumnScrollbar(
                 .fillMaxHeight()
                 .width(8.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(SurfaceVariant)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .pointerInput(state) {
                     detectDragGestures { _, drag ->
                         scope.launch {

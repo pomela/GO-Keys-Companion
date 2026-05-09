@@ -52,7 +52,6 @@ import com.companion.gokeys.ui.components.SectionCard
 import com.companion.gokeys.ui.theme.Border
 import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Muted
-import com.companion.gokeys.ui.theme.MutedSurface
 import com.companion.gokeys.viewmodel.CompanionViewModel
 
 @Composable
@@ -233,7 +232,7 @@ private fun PartSelectorCard(
     val bg = when {
         isSelected -> mainColor.copy(alpha = 0.15f)
         isActive -> accentColor.copy(alpha = 0.15f)
-        else -> MutedSurface
+        else -> MaterialTheme.colorScheme.surfaceVariant
     }
     val borderColor = when {
         isSelected -> mainColor

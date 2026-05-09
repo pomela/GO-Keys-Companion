@@ -112,23 +112,11 @@ private fun PreferencesCard(prefs: PreferencesConfig, onUpdate: (PreferencesConf
             PrimaryPresets.forEachIndexed { index, color ->
                 ColorDot(
                     color = color,
-                    selected = prefs.mainPresetIndex == index && prefs.mainCustomHex.isEmpty(),
+                    selected = prefs.mainPresetIndex == index,
                     onClick = { onUpdate(prefs.copy(mainPresetIndex = index, mainCustomHex = "")) },
                 )
             }
         }
-        Spacer(Modifier.height(6.dp))
-        OutlinedTextField(
-            value = prefs.mainCustomHex,
-            onValueChange = { hex ->
-                val clean = hex.trimStart('#').take(6).uppercase()
-                onUpdate(prefs.copy(mainCustomHex = clean))
-            },
-            label = { Text("Custom hex (RRGGBB)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("e.g. FF7A3D") },
-        )
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.pref_thumb_color), style = MaterialTheme.typography.labelMedium, color = Muted)
         Spacer(Modifier.height(6.dp))
@@ -136,23 +124,11 @@ private fun PreferencesCard(prefs: PreferencesConfig, onUpdate: (PreferencesConf
             ThumbPresets.forEachIndexed { index, color ->
                 ColorDot(
                     color = color,
-                    selected = prefs.accentPresetIndex == index && prefs.accentCustomHex.isEmpty(),
+                    selected = prefs.accentPresetIndex == index,
                     onClick = { onUpdate(prefs.copy(accentPresetIndex = index, accentCustomHex = "")) },
                 )
             }
         }
-        Spacer(Modifier.height(6.dp))
-        OutlinedTextField(
-            value = prefs.accentCustomHex,
-            onValueChange = { hex ->
-                val clean = hex.trimStart('#').take(6).uppercase()
-                onUpdate(prefs.copy(accentCustomHex = clean))
-            },
-            label = { Text("Custom hex (RRGGBB)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("e.g. FF7A3D") },
-        )
     }
 }
 

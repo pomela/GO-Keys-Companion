@@ -2,26 +2,32 @@
 
 package com.companion.gokeys.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Cable
-import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,9 +35,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -93,53 +103,61 @@ fun App(vm: CompanionViewModel) {
             )
         },
         bottomBar = {
-            NavigationBar {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 6.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 NAV_ITEMS.forEach { item ->
+                    val isSelected = currentRoute == item.route
                     val isConnect = item.route == "connection"
-                    NavigationBarItem(
-                        selected = currentRoute == item.route,
-                        onClick = {
-                            nav.navigate(item.route) {
-                                launchSingleTop = true
-                                popUpTo(nav.graph.startDestinationId) { saveState = true }
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            if (isConnect) {
-                                BadgedBox(badge = {
-                                    Badge(containerColor = if (connected) Success else Destructive)
-                                }) {
-                                    Icon(item.icon, contentDescription = null)
-                                }
-                            } else {
-                                Icon(item.icon, contentDescription = null)
-                            }
-                        },
-                        label = {
-                            Text(
-                                text = stringResource(item.labelRes),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                softWrap = false,
-                                fontSize = 9.sp,
+                    val itemColor = when {
+                        isConnect && connected -> Success
+                        isConnect -> Destructive
+                        else -> mainColor
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isSelected) itemColor.copy(alpha = 0.18f)
+                                else MaterialTheme.colorScheme.surfaceVariant
                             )
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            indicatorColor = when {
-                                isConnect -> (if (connected) Success else Destructive).copy(alpha = 0.18f)
-                                else -> mainColor.copy(alpha = 0.18f)
-                            },
-                            selectedIconColor = when {
-                                isConnect -> if (connected) Success else Destructive
-                                else -> mainColor
-                            },
-                            selectedTextColor = when {
-                                isConnect -> if (connected) Success else Destructive
-                                else -> mainColor
-                            },
-                        ),
-                    )
+                            .border(
+                                1.dp,
+                                if (isSelected) itemColor else MaterialTheme.colorScheme.outline,
+                                RoundedCornerShape(10.dp),
+                            )
+                            .clickable {
+                                nav.navigate(item.route) {
+                                    launchSingleTop = true
+                                    popUpTo(nav.graph.startDestinationId) { saveState = true }
+                                    restoreState = true
+                                }
+                            }
+                            .padding(vertical = 6.dp, horizontal = 2.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            item.icon,
+                            contentDescription = null,
+                            tint = if (isSelected) itemColor else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(item.labelRes),
+                            color = if (isSelected) itemColor else MaterialTheme.colorScheme.onSurface,
+                            fontSize = 9.sp,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
                 }
             }
         },

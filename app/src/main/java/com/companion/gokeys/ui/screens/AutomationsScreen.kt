@@ -41,32 +41,42 @@ fun AutomationsScreen(vm: CompanionViewModel) {
     Column(Modifier.fillMaxSize()) {
         SectionCard(title = stringResource(R.string.section_automations_new)) {
             Text(stringResource(R.string.automations_intro), color = Muted)
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(10.dp))
             OutlinedTextField(value = name, onValueChange = { name = it },
                 placeholder = { Text(stringResource(R.string.automation_name)) },
                 singleLine = true, modifier = Modifier.fillMaxWidth())
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(14.dp))
             Text(stringResource(R.string.trigger), color = Muted)
+            Spacer(Modifier.height(8.dp))
             ChipRow(listOf("noteOn", "cc", "sysex", "patch"), triggerType) { triggerType = it }
+            Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedTextField(value = paramA, onValueChange = { paramA = it },
                     label = { Text("A") }, singleLine = true, modifier = Modifier.weight(1f))
                 OutlinedTextField(value = paramB, onValueChange = { paramB = it },
                     label = { Text("B") }, singleLine = true, modifier = Modifier.weight(1f))
             }
-            if (triggerType == "sysex") OutlinedTextField(value = triggerHex, onValueChange = { triggerHex = it },
-                placeholder = { Text("F0 41 10 …") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            if (triggerType == "sysex") {
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = triggerHex, onValueChange = { triggerHex = it },
+                    placeholder = { Text("F0 41 10 …") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            }
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(14.dp))
             Text(stringResource(R.string.action), color = Muted)
+            Spacer(Modifier.height(8.dp))
             ChipRow(listOf("panic", "send", "patch", "loopmix", "macro"), actionType) { actionType = it }
+            Spacer(Modifier.height(8.dp))
             OutlinedTextField(value = actionA, onValueChange = { actionA = it },
                 label = { Text(stringResource(R.string.action_param)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            if (actionType in setOf("send", "patch", "macro")) OutlinedTextField(value = actionHex, onValueChange = { actionHex = it },
-                placeholder = { Text(stringResource(R.string.action_hex_or_id)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            if (actionType in setOf("send", "patch", "macro")) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(value = actionHex, onValueChange = { actionHex = it },
+                    placeholder = { Text(stringResource(R.string.action_hex_or_id)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(14.dp))
             PrimaryButton(text = stringResource(R.string.btn_save), onClick = {
                 if (name.isBlank()) return@PrimaryButton
                 vm.upsertAutomation(Automation(

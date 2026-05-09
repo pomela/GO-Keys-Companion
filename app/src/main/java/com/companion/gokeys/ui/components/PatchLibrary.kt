@@ -46,7 +46,6 @@ import com.companion.gokeys.data.HiddenPatches
 import com.companion.gokeys.data.Patch
 import com.companion.gokeys.data.Patches
 import com.companion.gokeys.ui.theme.Muted
-import com.companion.gokeys.ui.theme.SurfaceVariant
 import com.companion.gokeys.viewmodel.CompanionViewModel
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -216,7 +215,7 @@ private fun PatchRow(p: Patch, active: Boolean, onClick: () -> Unit) {
             .fillMaxWidth()
             .padding(vertical = 3.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else SurfaceVariant)
+            .background(if (active) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f) else MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

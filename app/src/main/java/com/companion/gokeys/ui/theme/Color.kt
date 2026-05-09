@@ -8,26 +8,26 @@ val SurfaceVariant = Color(0xFF1F2330)
 val MutedSurface = Color(0xFF1A1D27)
 val Border = Color(0xFF262A36)
 
-val Primary = Color(0xFFFF7A3D)
-val PrimaryFg = Color(0xFF1A0F08)
+val Primary = Color(0xFFE2231A)  // Roland red (default main)
+val PrimaryFg = Color(0xFFFFFFFF)
 val OnSurface = Color(0xFFF5F5F7)
 val Muted = Color(0xFF8B8F9C)
 val Success = Color(0xFF3DDC97)
 val Destructive = Color(0xFFEF4444)
-val SliderThumb = Color(0xFFFF7A3D)  // default accent = same as main
+val SliderThumb = Color(0xFF4A90D9)  // blue (default accent)
 
 val PrimaryPresets: List<Color> = listOf(
-    Color(0xFFFF7A3D),  // orange  (default)
+    Color(0xFFE2231A),  // Roland red (default)
+    Color(0xFFFF7A3D),  // orange
+    Color(0xFF40BCD8),  // light turquoise
     Color(0xFF4A90D9),  // blue
-    Color(0xFF3DDC97),  // green
-    Color(0xFF9B59B6),  // purple
-    Color(0xFFE91E8C),  // rose
+    Color(0xFFE91E8C),  // pink
 )
 
 val ThumbPresets: List<Color> = listOf(
-    Color(0xFFFF7A3D),  // orange  (default — matches main)
-    Color(0xFF8B1A1A),  // dark red
-    Color(0xFF1A3A6B),  // navy
-    Color(0xFF1A5C2E),  // forest
-    Color(0xFF2C2C2C),  // charcoal
+    Color(0xFF4A90D9),  // blue (default)
+    Color(0xFFE2231A),  // Roland red
+    Color(0xFFFF7A3D),  // orange
+    Color(0xFF40BCD8),  // light turquoise
+    Color(0xFFE91E8C),  // pink
 )
