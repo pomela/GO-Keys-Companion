@@ -152,13 +152,39 @@ private fun MasterStrip(state: AppState, vm: CompanionViewModel, onShowDemo: () 
             onValueChangeFinished = { vm.pushMasterVolume() },
         )
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            PrimaryButton(stringResource(R.string.btn_tempo_down), onClick = { vm.tempoDown() })
-            PrimaryButton(stringResource(R.string.btn_tempo_up), onClick = { vm.tempoUp() })
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TempoControl(
+                nudge = state.master.tempoNudge,
+                onDown = { vm.tempoDown() },
+                onUp = { vm.tempoUp() },
+            )
             Box(Modifier.weight(1f))
             PrimaryButton(stringResource(R.string.btn_panic), onClick = { vm.panic() })
-            GhostButton(stringResource(R.string.section_demo), onClick = onShowDemo)
+            GhostButton("Demo", onClick = onShowDemo)
         }
+    }
+}
+
+@Composable
+private fun TempoControl(nudge: Int, onDown: () -> Unit, onUp: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        GhostButton("−", onClick = onDown)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        ) {
+            Text("Tempo", style = MaterialTheme.typography.labelSmall, color = Muted)
+            Text(
+                if (nudge > 0) "+$nudge" else "$nudge",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        GhostButton("+", onClick = onUp)
     }
 }
 
@@ -250,13 +276,11 @@ private fun PartControlPanel(
     var showShapingSheet by remember(partIndex) { mutableStateOf(false) }
     val shapingSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    if (partIndex != 0) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.part_active), Modifier.weight(1f))
-            Switch(checked = enabled, onCheckedChange = { vm.setPartEnabled(partIndex, it) })
-        }
-        Spacer(Modifier.height(6.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.part_active), Modifier.weight(1f))
+        Switch(checked = enabled, onCheckedChange = { vm.setPartEnabled(partIndex, it) })
     }
+    Spacer(Modifier.height(6.dp))
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.part_channel, part.channel), color = Muted, modifier = Modifier.weight(1f))

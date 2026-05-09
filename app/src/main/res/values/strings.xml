@@ -137,6 +137,15 @@
     <string name="btn_start">Start</string>
     <string name="btn_stop">Stop</string>
 
+    <!-- Preferences -->
+    <string name="section_preferences">Preferences</string>
+    <string name="pref_theme">Theme</string>
+    <string name="pref_theme_system">System</string>
+    <string name="pref_theme_light">Light</string>
+    <string name="pref_theme_dark">Dark</string>
+    <string name="pref_primary_color">Accent color</string>
+    <string name="pref_thumb_color">Slider color</string>
+
     <!-- Profiles -->
     <string name="section_profiles">Profiles</string>
     <string name="profiles_intro">Save the entire app state as a named profile and recall it instantly.</string>

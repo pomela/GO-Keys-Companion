@@ -10,6 +10,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.companion.gokeys.ui.App
 import com.companion.gokeys.ui.theme.GoKeysTheme
 import com.companion.gokeys.viewmodel.CompanionViewModel
@@ -26,7 +28,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         ensureBluetoothPermissions()
         setContent {
-            GoKeysTheme {
+            val preferences by vm.preferences.collectAsState()
+            GoKeysTheme(preferences = preferences) {
                 App(vm)
             }
         }

@@ -3,6 +3,16 @@ package com.companion.gokeys.data
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
+
+@Serializable
+data class PreferencesConfig(
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val primaryPresetIndex: Int = 0,
+    val sliderThumbPresetIndex: Int = 0,
+)
+
+@Serializable
 data class PartConfig(
     val channel: Int = 1,
     val patchMsb: Int = 87,

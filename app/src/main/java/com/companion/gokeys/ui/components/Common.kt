@@ -55,13 +55,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.companion.gokeys.ui.theme.Border
 import com.companion.gokeys.ui.theme.MutedSurface
 import com.companion.gokeys.ui.theme.Primary
-import com.companion.gokeys.ui.theme.SliderThumb
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Success
 import com.companion.gokeys.ui.theme.SurfaceVariant
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -270,43 +269,49 @@ fun LabeledSlider(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.weight(1f)) {
+            val thumbColor = LocalSliderThumb.current
+            val trackColor = MaterialTheme.colorScheme.primary
             Slider(
                 state = sliderState,
                 modifier = Modifier.fillMaxWidth(),
                 thumb = {
-                    // Thick vertical-bar thumb in a contrasting colour
                     Box(
                         Modifier
-                            .width(5.dp)
-                            .height(28.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .background(SliderThumb),
+                            .size(37.dp)
+                            .clip(CircleShape)
+                            .background(thumbColor),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = sliderState.value.toInt().toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                        )
+                    }
+                },
+                track = { state ->
+                    SliderDefaults.Track(
+                        sliderState = state,
+                        modifier = Modifier.height(6.dp),
+                        thumbTrackGapSize = 0.dp,
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = trackColor.copy(alpha = 0.65f),
+                            inactiveTrackColor = SurfaceVariant,
+                            thumbColor = thumbColor,
+                        ),
                     )
                 },
-                colors = SliderDefaults.colors(
-                    activeTrackColor = Primary.copy(alpha = 0.65f),
-                    inactiveTrackColor = SurfaceVariant,
-                    thumbColor = SliderThumb,
-                ),
             )
-            // Label — left, passes through touch events to the Slider below
+            // Label — overlaid left, passes touch events through to the Slider
             Text(
                 text = label,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 8.dp, end = 56.dp),
-                style = MaterialTheme.typography.labelSmall,
+                    .padding(start = 8.dp, end = 16.dp),
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-            )
-            // Value — centred
-            Text(
-                text = value.toString(),
-                modifier = Modifier.align(Alignment.Center),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
             )
         }
         if (onReset != null) {
@@ -385,7 +390,7 @@ fun LazyColumnScrollbar(
                         .fillMaxWidth()
                         .height(trackHeight * proportion)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Primary),
+                        .background(MaterialTheme.colorScheme.primary),
                 )
             }
         }

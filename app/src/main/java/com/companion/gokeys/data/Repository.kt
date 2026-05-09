@@ -17,6 +17,7 @@ object Keys {
     val PROFILES = stringPreferencesKey("profiles")
     val MACROS = stringPreferencesKey("macros")
     val AUTOMATIONS = stringPreferencesKey("automations")
+    val PREFERENCES = stringPreferencesKey("ui_preferences")
 }
 
 class Repository(private val ctx: Context) {
@@ -70,6 +71,18 @@ class Repository(private val ctx: Context) {
         ctx.dataStore.edit {
             it[Keys.AUTOMATIONS] =
                 json.encodeToString(ListSerializer(Automation.serializer()), list)
+        }
+    }
+
+    val preferencesFlow: Flow<PreferencesConfig> = ctx.dataStore.data.map { p: Preferences ->
+        p[Keys.PREFERENCES]?.let {
+            runCatching { json.decodeFromString<PreferencesConfig>(it) }.getOrNull()
+        } ?: PreferencesConfig()
+    }
+
+    suspend fun savePreferences(config: PreferencesConfig) {
+        ctx.dataStore.edit {
+            it[Keys.PREFERENCES] = json.encodeToString(PreferencesConfig.serializer(), config)
         }
     }
 }

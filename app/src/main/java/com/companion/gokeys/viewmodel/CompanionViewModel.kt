@@ -15,6 +15,7 @@ import com.companion.gokeys.data.MacroEvent
 import com.companion.gokeys.data.MasterConfig
 import com.companion.gokeys.data.PartConfig
 import com.companion.gokeys.data.PerformanceConfig
+import com.companion.gokeys.data.PreferencesConfig
 import com.companion.gokeys.data.Profile
 import com.companion.gokeys.data.Repository
 import com.companion.gokeys.data.ZoneConfig
@@ -45,6 +46,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _automations = MutableStateFlow<List<Automation>>(emptyList())
     val automations: StateFlow<List<Automation>> = _automations.asStateFlow()
+
+    private val _preferences = MutableStateFlow(PreferencesConfig())
+    val preferences: StateFlow<PreferencesConfig> = _preferences.asStateFlow()
 
     // ---- Macro recording ---------------------------------------------------
 
@@ -82,6 +86,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             service.events.collect { handleEventForRecording(it) }
         }
+        viewModelScope.launch { repo.preferencesFlow.collect { _preferences.value = it } }
         automationEngine.start()
     }
 
@@ -355,8 +360,20 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun tempoUp() = service.send(RolandSysEx.tempoUp(model()))
-    fun tempoDown() = service.send(RolandSysEx.tempoDown(model()))
+    fun tempoUp() {
+        updateMaster { it.copy(tempoNudge = it.tempoNudge + 1) }
+        service.send(RolandSysEx.tempoUp(model()))
+    }
+
+    fun tempoDown() {
+        updateMaster { it.copy(tempoNudge = it.tempoNudge - 1) }
+        service.send(RolandSysEx.tempoDown(model()))
+    }
+
+    fun updatePreferences(config: PreferencesConfig) {
+        _preferences.value = config
+        viewModelScope.launch { repo.savePreferences(config) }
+    }
     fun demoOff() = service.send(RolandSysEx.demoOff(model()))
 
     // ---- LoopMix -----------------------------------------------------------

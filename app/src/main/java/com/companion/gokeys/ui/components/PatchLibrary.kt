@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.companion.gokeys.ui.components
 
 import androidx.compose.foundation.background
@@ -12,10 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -24,7 +29,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,24 +51,54 @@ import com.companion.gokeys.viewmodel.CompanionViewModel
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-/**
- * Inline patch library — search box, category chips and a scrollable patch
- * list with the custom drag scrollbar.  When the user taps a patch the
- * given [partIndex] is updated and the patch is sent to the keyboard
- * immediately via [CompanionViewModel.selectPatchForPart].
- *
- * The list area always reserves at least 50 % of the screen height so the
- * scrollbar is comfortable to use even on small phones.
- *
- * Search/category/scroll state is shared with the global [LibraryUiState]
- * so it is restored across launches just like the standalone screen.
- */
+private fun categoryLabel(cat: String) = when (cat) {
+    "ALL" -> "All"
+    "PNO" -> "PNO (Piano)"
+    "EP"  -> "EP (E.Piano)"
+    "ORG" -> "ORG (Organ)"
+    "KEY" -> "KEY (Keyboard)"
+    "STR" -> "STR (Strings)"
+    "BRS" -> "BRS (Brass)"
+    "SBR" -> "SBR (Super Brass)"
+    "WND" -> "WND (Woodwind)"
+    "SAX" -> "SAX (Saxophone)"
+    "FLT" -> "FLT (Flute)"
+    "HRM" -> "HRM (Harmonica)"
+    "AGT" -> "AGT (Ac.Guitar)"
+    "EGT" -> "EGT (El.Guitar)"
+    "FRT" -> "FRT (Fretted)"
+    "PLK" -> "PLK (Pluck)"
+    "BS"  -> "BS (Bass)"
+    "SBS" -> "SBS (Synth Bass)"
+    "SYN" -> "SYN (Synth)"
+    "SPD" -> "SPD (Synth Pad)"
+    "SLD" -> "SLD (Synth Lead)"
+    "PLS" -> "PLS (Pulse)"
+    "CMB" -> "CMB (Combo)"
+    "MLT" -> "MLT (Mallet)"
+    "BEL" -> "BEL (Bell)"
+    "VOX" -> "VOX (Vocals)"
+    "ETH" -> "ETH (Ethnic)"
+    "ACD" -> "ACD (Accordion)"
+    "DRM" -> "DRM (Drums)"
+    "PRC" -> "PRC (Percussion)"
+    "HIT" -> "HIT (Hit)"
+    "HLD" -> "HLD (Hold)"
+    "BTS" -> "BTS (Beat Sync)"
+    "BPD" -> "BPD (Beat Pad)"
+    "DGT" -> "DGT (Digital)"
+    "TEK" -> "TEK (Techno)"
+    "FX"  -> "FX (Effects)"
+    "SFX" -> "SFX (Sound FX)"
+    "SMP" -> "SMP (Sample)"
+    else  -> cat
+}
+
 @Composable
 fun PatchLibrary(
     vm: CompanionViewModel,
     partIndex: Int,
     modifier: Modifier = Modifier,
-    /** Minimum height of the scrollable list. */
     minListHeight: Dp = (LocalConfiguration.current.screenHeightDp * 0.55f).dp,
     onPicked: (() -> Unit)? = null,
 ) {
@@ -96,6 +133,8 @@ fun PatchLibrary(
             }
     }
 
+    var categoryExpanded by remember { mutableStateOf(false) }
+
     Column(modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = lib.searchQuery,
@@ -105,20 +144,30 @@ fun PatchLibrary(
             placeholder = { Text(stringResource(R.string.search_placeholder)) },
         )
         Spacer(Modifier.height(8.dp))
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            items(categories) { cat ->
-                val sel = lib.selectedCategory == cat
-                Box(
-                    Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (sel) MaterialTheme.colorScheme.primary else SurfaceVariant)
-                        .clickable { vm.updateLibraryUi { it.copy(selectedCategory = cat) } }
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                ) {
-                    Text(
-                        cat,
-                        color = if (sel) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium,
+        ExposedDropdownMenuBox(
+            expanded = categoryExpanded,
+            onExpandedChange = { categoryExpanded = it },
+        ) {
+            OutlinedTextField(
+                value = categoryLabel(lib.selectedCategory),
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+            )
+            ExposedDropdownMenu(
+                expanded = categoryExpanded,
+                onDismissRequest = { categoryExpanded = false },
+            ) {
+                categories.forEach { cat ->
+                    DropdownMenuItem(
+                        text = { Text(categoryLabel(cat)) },
+                        onClick = {
+                            vm.updateLibraryUi { it.copy(selectedCategory = cat) }
+                            categoryExpanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )
                 }
             }
