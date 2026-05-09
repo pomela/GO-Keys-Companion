@@ -23,6 +23,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -226,24 +227,16 @@ private fun PartSelectorCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val accentColor = LocalSliderThumb.current
     val mainColor = MaterialTheme.colorScheme.primary
-
     val bg = when {
-        isSelected -> mainColor.copy(alpha = 0.15f)
-        isActive -> accentColor.copy(alpha = 0.15f)
+        isSelected -> mainColor.copy(alpha = 0.25f)
+        isActive -> mainColor.copy(alpha = 0.10f)
         else -> MaterialTheme.colorScheme.surfaceVariant
-    }
-    val borderColor = when {
-        isSelected -> mainColor
-        isActive -> accentColor
-        else -> Border
     }
     val nameColor = if (isActive || isSelected) MaterialTheme.colorScheme.onSurface else Muted
     val patchColor = when {
-        isSelected && isActive -> accentColor
         isSelected -> mainColor
-        isActive -> accentColor
+        isActive -> mainColor.copy(alpha = 0.75f)
         else -> Muted.copy(alpha = 0.5f)
     }
 
@@ -251,7 +244,7 @@ private fun PartSelectorCard(
         modifier
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
-            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+            .then(if (isSelected) Modifier.border(1.dp, mainColor, RoundedCornerShape(12.dp)) else Modifier)
             .clickable { onClick() }
             .padding(8.dp),
     ) {
@@ -308,25 +301,25 @@ private fun PartControlPanel(
         stringResource(R.string.slider_volume), part.volume,
         onValueChange = { v -> vm.updatePart(partIndex) { it.copy(volume = v) } },
         onValueChangeFinished = { vm.pushVolume(partIndex) },
-        onReset = { vm.resetVolume(partIndex) },
+        onReset = { vm.resetVolume(partIndex) }, defaultValue = 110,
     )
     LabeledSlider(
         stringResource(R.string.slider_pan), part.pan, range = 0..127,
         onValueChange = { v -> vm.updatePart(partIndex) { it.copy(pan = v) } },
         onValueChangeFinished = { vm.pushPan(partIndex) },
-        onReset = { vm.resetPan(partIndex) },
+        onReset = { vm.resetPan(partIndex) }, defaultValue = 64,
     )
     LabeledSlider(
         stringResource(R.string.slider_reverb), part.reverb,
         onValueChange = { v -> vm.updatePart(partIndex) { it.copy(reverb = v) } },
         onValueChangeFinished = { vm.pushReverb(partIndex) },
-        onReset = { vm.resetReverb(partIndex) },
+        onReset = { vm.resetReverb(partIndex) }, defaultValue = 40,
     )
     LabeledSlider(
         stringResource(R.string.slider_chorus), part.chorus,
         onValueChange = { v -> vm.updatePart(partIndex) { it.copy(chorus = v) } },
         onValueChangeFinished = { vm.pushChorus(partIndex) },
-        onReset = { vm.resetChorus(partIndex) },
+        onReset = { vm.resetChorus(partIndex) }, defaultValue = 0,
     )
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -338,11 +331,13 @@ private fun PartControlPanel(
             stringResource(R.string.zone_low, midiNote(zone.keyLow)), zone.keyLow, range = 0..127,
             onValueChange = { v -> vm.updateZone(partIndex) { it.copy(keyLow = v) } },
             onValueChangeFinished = { vm.pushZone(partIndex) },
+            defaultValue = 0,
         )
         LabeledSlider(
             stringResource(R.string.zone_high, midiNote(zone.keyHigh)), zone.keyHigh, range = 0..127,
             onValueChange = { v -> vm.updateZone(partIndex) { it.copy(keyHigh = v) } },
             onValueChangeFinished = { vm.pushZone(partIndex) },
+            defaultValue = 127,
         )
     }
 
@@ -365,6 +360,12 @@ private fun PartControlPanel(
 
 @Composable
 private fun SoundShapingSheet(vm: CompanionViewModel, partIndex: Int, part: PartConfig) {
+    val accentColor = LocalSliderThumb.current
+    val switchColors = SwitchDefaults.colors(
+        checkedThumbColor = accentColor,
+        checkedTrackColor = accentColor.copy(alpha = 0.5f),
+        checkedBorderColor = accentColor.copy(alpha = 0.7f),
+    )
     Column(
         Modifier
             .fillMaxWidth()
@@ -380,75 +381,83 @@ private fun SoundShapingSheet(vm: CompanionViewModel, partIndex: Int, part: Part
             stringResource(R.string.slider_expression), part.expression,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(expression = v) } },
             onValueChangeFinished = { vm.pushExpression(partIndex) },
-            onReset = { vm.resetExpression(partIndex) },
+            onReset = { vm.resetExpression(partIndex) }, defaultValue = 127,
         )
         LabeledSlider(
             stringResource(R.string.slider_cutoff), part.cutoff,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(cutoff = v) } },
             onValueChangeFinished = { vm.pushCutoff(partIndex) },
-            onReset = { vm.resetCutoff(partIndex) },
+            onReset = { vm.resetCutoff(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_resonance), part.resonance,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(resonance = v) } },
             onValueChangeFinished = { vm.pushResonance(partIndex) },
-            onReset = { vm.resetResonance(partIndex) },
+            onReset = { vm.resetResonance(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_attack), part.attack,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(attack = v) } },
             onValueChangeFinished = { vm.pushAttack(partIndex) },
-            onReset = { vm.resetAttack(partIndex) },
+            onReset = { vm.resetAttack(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_decay), part.decay,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(decay = v) } },
             onValueChangeFinished = { vm.pushDecay(partIndex) },
-            onReset = { vm.resetDecay(partIndex) },
+            onReset = { vm.resetDecay(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_release), part.release,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(release = v) } },
             onValueChangeFinished = { vm.pushRelease(partIndex) },
-            onReset = { vm.resetRelease(partIndex) },
+            onReset = { vm.resetRelease(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_vibrato_rate), part.vibratoRate,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(vibratoRate = v) } },
             onValueChangeFinished = { vm.pushVibratoRate(partIndex) },
-            onReset = { vm.resetVibratoRate(partIndex) },
+            onReset = { vm.resetVibratoRate(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_vibrato_depth), part.vibratoDepth,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(vibratoDepth = v) } },
             onValueChangeFinished = { vm.pushVibratoDepth(partIndex) },
-            onReset = { vm.resetVibratoDepth(partIndex) },
+            onReset = { vm.resetVibratoDepth(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_vibrato_delay), part.vibratoDelay,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(vibratoDelay = v) } },
             onValueChangeFinished = { vm.pushVibratoDelay(partIndex) },
-            onReset = { vm.resetVibratoDelay(partIndex) },
+            onReset = { vm.resetVibratoDelay(partIndex) }, defaultValue = 64,
         )
         LabeledSlider(
             stringResource(R.string.slider_portamento_time), part.portamentoTime,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(portamentoTime = v) } },
             onValueChangeFinished = { vm.pushPortamentoTime(partIndex) },
-            onReset = { vm.resetPortamentoTime(partIndex) },
+            onReset = { vm.resetPortamentoTime(partIndex) }, defaultValue = 0,
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.toggle_portamento), Modifier.weight(1f))
-            Switch(checked = part.portamentoOn, onCheckedChange = {
-                vm.updatePart(partIndex) { p -> p.copy(portamentoOn = it) }
-                vm.pushPortamentoOnOff(partIndex)
-            })
+            Switch(
+                checked = part.portamentoOn,
+                onCheckedChange = {
+                    vm.updatePart(partIndex) { p -> p.copy(portamentoOn = it) }
+                    vm.pushPortamentoOnOff(partIndex)
+                },
+                colors = switchColors,
+            )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.toggle_mono), Modifier.weight(1f))
-            Switch(checked = part.mono, onCheckedChange = {
-                vm.updatePart(partIndex) { p -> p.copy(mono = it) }
-                vm.pushMonoMode(partIndex)
-            })
+            Switch(
+                checked = part.mono,
+                onCheckedChange = {
+                    vm.updatePart(partIndex) { p -> p.copy(mono = it) }
+                    vm.pushMonoMode(partIndex)
+                },
+                colors = switchColors,
+            )
         }
         Spacer(Modifier.height(12.dp))
         PrimaryButton(text = stringResource(R.string.btn_reset_cc), onClick = { vm.resetPartCC(partIndex) })

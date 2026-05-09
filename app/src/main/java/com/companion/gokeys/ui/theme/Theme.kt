@@ -13,23 +13,26 @@ import com.companion.gokeys.data.ThemeMode
 
 val LocalSliderThumb = compositionLocalOf { SliderThumb }
 
-fun PreferencesConfig.mainColor(): Color {
+// Returns null for mono (-1) — caller must resolve against isDark.
+fun PreferencesConfig.mainColor(): Color? {
     if (mainCustomHex.length == 6) {
         val r = mainCustomHex.substring(0, 2).toIntOrNull(16)
         val g = mainCustomHex.substring(2, 4).toIntOrNull(16)
         val b = mainCustomHex.substring(4, 6).toIntOrNull(16)
         if (r != null && g != null && b != null) return Color(r, g, b)
     }
+    if (mainPresetIndex < 0) return null
     return PrimaryPresets.getOrElse(mainPresetIndex) { Primary }
 }
 
-fun PreferencesConfig.accentColor(): Color {
+fun PreferencesConfig.accentColor(): Color? {
     if (accentCustomHex.length == 6) {
         val r = accentCustomHex.substring(0, 2).toIntOrNull(16)
         val g = accentCustomHex.substring(2, 4).toIntOrNull(16)
         val b = accentCustomHex.substring(4, 6).toIntOrNull(16)
         if (r != null && g != null && b != null) return Color(r, g, b)
     }
+    if (accentPresetIndex < 0) return null
     return ThumbPresets.getOrElse(accentPresetIndex) { SliderThumb }
 }
 
@@ -71,8 +74,10 @@ fun GoKeysTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val primary = preferences.mainColor()
-    val thumb = preferences.accentColor()
+    // Dark mono: dark slate button bg (white text readable) + medium gray thumb (visible on dark surfaces)
+    // Light mono: near-black for both (white text readable, visible on light surfaces)
+    val primary = preferences.mainColor() ?: if (isDark) Color(0xFF2D3040) else Color(0xFF1A1A2E)
+    val thumb = preferences.accentColor() ?: if (isDark) Color(0xFF6B7088) else Color(0xFF1A1A2E)
     val scheme = if (isDark) buildDarkScheme(primary) else buildLightScheme(primary)
 
     CompositionLocalProvider(LocalSliderThumb provides thumb) {

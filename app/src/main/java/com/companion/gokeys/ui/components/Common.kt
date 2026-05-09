@@ -57,7 +57,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.companion.gokeys.ui.theme.Border
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Success
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -244,6 +246,7 @@ fun LabeledSlider(
     onValueChangeFinished: (() -> Unit)? = null,
     range: IntRange = 0..127,
     onReset: (() -> Unit)? = null,
+    defaultValue: Int? = null,
 ) {
     // rememberUpdatedState ensures the SliderState's onValueChangeFinished lambda
     // always calls the latest callback even though SliderState is created once.
@@ -267,13 +270,19 @@ fun LabeledSlider(
         if (sliderState.value.toInt() != value) sliderState.value = value.toFloat()
     }
 
+    val isModified = defaultValue != null && value != defaultValue
+    val accentColor = LocalSliderThumb.current
+
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.weight(1f)) {
             val mainColor = MaterialTheme.colorScheme.primary
             val surfVariant = MaterialTheme.colorScheme.surfaceVariant
+            val thumbColor = if (isModified) accentColor else mainColor
             Slider(
                 state = sliderState,
                 modifier = Modifier.fillMaxWidth(),
@@ -281,15 +290,15 @@ fun LabeledSlider(
                     Box(
                         Modifier
                             .width(24.dp)
-                            .height(28.dp)
+                            .height(32.dp)
                             .clip(RoundedCornerShape(4.dp))
-                            .background(mainColor),
+                            .background(thumbColor),
                     )
                 },
                 track = { state ->
                     SliderDefaults.Track(
                         sliderState = state,
-                        modifier = Modifier.height(24.dp),
+                        modifier = Modifier.height(22.dp),
                         thumbTrackGapSize = 0.dp,
                         colors = SliderDefaults.colors(
                             activeTrackColor = mainColor.copy(alpha = 0.85f),
@@ -304,9 +313,10 @@ fun LabeledSlider(
                 text = label,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 8.dp, end = 56.dp),
+                    .padding(start = 26.dp, end = 56.dp),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 13.sp,
+                color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -315,7 +325,8 @@ fun LabeledSlider(
                 text = value.toString(),
                 modifier = Modifier.align(Alignment.Center),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 13.sp,
+                color = Color.White,
             )
         }
         if (onReset != null) {
@@ -331,7 +342,7 @@ fun LabeledSlider(
                 Icon(
                     Icons.Default.Refresh,
                     contentDescription = "Reset",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = if (isModified) accentColor else MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(16.dp),
                 )
             }

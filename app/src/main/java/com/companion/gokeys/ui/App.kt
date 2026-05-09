@@ -129,13 +129,15 @@ fun App(vm: CompanionViewModel) {
                         isConnect -> Destructive
                         else -> mainColor
                     }
-                    val showColor = isSelected || isConnect
+                    // icon/text: always colored for connect tab (shows connectivity status)
+                    // background: only when the tab is selected
+                    val showFgColor = isSelected || isConnect
                     Column(
                         Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(
-                                if (showColor) itemColor.copy(alpha = 0.18f)
+                                if (isSelected) itemColor.copy(alpha = 0.18f)
                                 else MaterialTheme.colorScheme.surfaceVariant
                             )
                             .then(
@@ -155,13 +157,13 @@ fun App(vm: CompanionViewModel) {
                         Icon(
                             item.icon,
                             contentDescription = null,
-                            tint = if (showColor) itemColor else MaterialTheme.colorScheme.onSurface,
+                            tint = if (showFgColor) itemColor else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(20.dp),
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = stringResource(item.labelRes),
-                            color = if (showColor) itemColor else MaterialTheme.colorScheme.onSurface,
+                            color = if (showFgColor) itemColor else MaterialTheme.colorScheme.onSurface,
                             fontSize = 9.sp,
                             maxLines = 1,
                             softWrap = false,
