@@ -1,128 +1,244 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.companion.gokeys.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.companion.gokeys.R
+import com.companion.gokeys.data.AppState
 import com.companion.gokeys.data.PartConfig
 import com.companion.gokeys.data.Patches
 import com.companion.gokeys.ui.components.ExpandableSectionCard
+import com.companion.gokeys.ui.components.GhostButton
 import com.companion.gokeys.ui.components.LabeledSlider
 import com.companion.gokeys.ui.components.PatchLibrary
 import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
+import com.companion.gokeys.ui.theme.Border
 import com.companion.gokeys.ui.theme.Muted
+import com.companion.gokeys.ui.theme.MutedSurface
+import com.companion.gokeys.ui.theme.Primary
+import com.companion.gokeys.ui.theme.SurfaceVariant
 import com.companion.gokeys.viewmodel.CompanionViewModel
 
-/**
- * Performance screen.
- *
- *  - The MAIN channel is always expanded and the sound library is shown
- *    inline (no Pick-Sound round-trip).  The list reserves > 50 % of the
- *    window height so the scrollbar is comfortable.
- *  - Layer / Split / extra parts and the Master / Demo sections are
- *    collapsible.  Each part's "Sound shaping" CC panel lives *inside*
- *    that part's expand area so it folds away with the rest of the part.
- *  - Demo songs are tagged GO:KEYS — per the rolandgo-hacking documentation
- *    the five-demo set is a GO:KEYS feature; GO:PIANO ignores those
- *    addresses.
- */
 @Composable
 fun PerformanceScreen(vm: CompanionViewModel) {
     val state by vm.state.collectAsState()
     val perf = state.performance
+    var selectedPart by rememberSaveable { mutableStateOf(0) }
+    var showPatchSheet by remember { mutableStateOf(false) }
+    var showDemoSheet by remember { mutableStateOf(false) }
+    val patchSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val demoSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val screenH = LocalConfiguration.current.screenHeightDp
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
     ) {
-        SectionCard(title = stringResource(R.string.section_performance)) {
+        // 1. Collapsible intro card
+        ExpandableSectionCard(
+            title = stringResource(R.string.section_performance),
+            stateKey = "perf-intro",
+            initiallyExpanded = false,
+        ) {
             Text(stringResource(R.string.performance_intro), color = Muted)
         }
 
-        for (i in perf.parts.indices) {
-            val title = when (i) {
-                0 -> stringResource(R.string.part_main)
-                1 -> stringResource(R.string.part_layer)
-                2 -> stringResource(R.string.part_split_lower)
-                else -> stringResource(R.string.part_extra, i + 1)
-            }
-            ExpandableSectionCard(
-                title = title,
-                stateKey = "perf-part-$i",
-                initiallyExpanded = (i == 0),
-            ) {
-                PartBody(
-                    vm = vm,
-                    partIndex = i,
-                    title = title,
-                    isMain = i == 0,
-                    minListHeight = (screenH * 0.55f),
+        // 2. Master controls — always visible above the part selector
+        MasterStrip(state = state, vm = vm, onShowDemo = { showDemoSheet = true })
+
+        // Part selector row
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (i in perf.parts.indices) {
+                val shortTitle = when (i) {
+                    0 -> "Main"; 1 -> "Layer"; 2 -> "Split"; else -> "Part ${i + 1}"
+                }
+                val part = perf.parts[i]
+                val patch = Patches.find(part.patchMsb, part.patchLsb, part.patchPc)
+                PartSelectorCard(
+                    modifier = Modifier.weight(1f),
+                    title = shortTitle,
+                    patchName = patch?.name ?: "—",
+                    isSelected = selectedPart == i,
+                    isActive = perf.partsEnabled[i],
+                    onClick = { selectedPart = i; showPatchSheet = false },
                 )
             }
         }
 
-        ExpandableSectionCard(
-            title = stringResource(R.string.section_master),
-            stateKey = "perf-master",
-            initiallyExpanded = false,
-        ) {
-            LabeledSlider(
-                stringResource(R.string.slider_master_vol), state.master.masterVolume,
-                onValueChange = { v -> vm.updateMaster { it.copy(masterVolume = v) } },
-                onValueChangeFinished = { vm.pushMasterVolume() },
+        // 3. Controls for the selected part (sound shaping opens as sheet)
+        SectionCard {
+            PartControlPanel(
+                vm = vm,
+                partIndex = selectedPart,
+                onPickSound = { showPatchSheet = true },
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PrimaryButton(text = stringResource(R.string.btn_tempo_down), onClick = { vm.tempoDown() })
-                PrimaryButton(text = stringResource(R.string.btn_tempo_up), onClick = { vm.tempoUp() })
-                Box(Modifier.weight(1f))
-                PrimaryButton(text = stringResource(R.string.btn_panic), onClick = { vm.panic() })
-            }
         }
 
-        ExpandableSectionCard(
-            title = stringResource(R.string.section_demo),
-            badge = stringResource(R.string.badge_keys),
-            stateKey = "perf-demo",
-            initiallyExpanded = false,
-        ) {
-            Text(stringResource(R.string.demo_intro), color = Muted)
-            Spacer(Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (d in 0..4) {
-                    PrimaryButton(text = stringResource(R.string.demo_song, d + 1), onClick = { vm.playDemoSong(d) })
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-            PrimaryButton(text = stringResource(R.string.btn_demo_off), onClick = { vm.demoOff() })
-        }
         Spacer(Modifier.height(20.dp))
+    }
+
+    if (showPatchSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showPatchSheet = false },
+            sheetState = patchSheetState,
+        ) {
+            PatchLibrary(
+                vm = vm,
+                partIndex = selectedPart,
+                modifier = Modifier.padding(horizontal = 12.dp),
+                minListHeight = (screenH * 0.50f).dp,
+                onPicked = { showPatchSheet = false },
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+
+    if (showDemoSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showDemoSheet = false },
+            sheetState = demoSheetState,
+        ) {
+            DemoSheetContent(vm = vm, onDismiss = { showDemoSheet = false })
+        }
+    }
+}
+
+// Always-visible master volume + transport controls
+@Composable
+private fun MasterStrip(state: AppState, vm: CompanionViewModel, onShowDemo: () -> Unit) {
+    SectionCard {
+        LabeledSlider(
+            stringResource(R.string.slider_master_vol), state.master.masterVolume,
+            onValueChange = { v -> vm.updateMaster { it.copy(masterVolume = v) } },
+            onValueChangeFinished = { vm.pushMasterVolume() },
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            PrimaryButton(stringResource(R.string.btn_tempo_down), onClick = { vm.tempoDown() })
+            PrimaryButton(stringResource(R.string.btn_tempo_up), onClick = { vm.tempoUp() })
+            Box(Modifier.weight(1f))
+            PrimaryButton(stringResource(R.string.btn_panic), onClick = { vm.panic() })
+            GhostButton(stringResource(R.string.section_demo), onClick = onShowDemo)
+        }
     }
 }
 
 @Composable
-private fun PartBody(
+private fun DemoSheetContent(vm: CompanionViewModel, onDismiss: () -> Unit) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 24.dp),
+    ) {
+        Text(stringResource(R.string.section_demo), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(4.dp))
+        Text(stringResource(R.string.demo_intro), color = Muted)
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            for (d in 0..4) {
+                PrimaryButton(
+                    text = stringResource(R.string.demo_song, d + 1),
+                    onClick = { vm.playDemoSong(d); onDismiss() },
+                )
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        GhostButton(stringResource(R.string.btn_demo_off), onClick = { vm.demoOff(); onDismiss() })
+    }
+}
+
+// 4. Fixed: fillMaxWidth on Column so Text can ellipsize; patch name uses labelSmall
+@Composable
+private fun PartSelectorCard(
+    title: String,
+    patchName: String,
+    isSelected: Boolean,
+    isActive: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val bg = when {
+        isSelected -> Primary.copy(alpha = 0.15f)
+        !isActive -> MutedSurface
+        else -> SurfaceVariant
+    }
+    val borderColor = if (isSelected) Primary else Border
+    val nameColor = if (isActive || isSelected) MaterialTheme.colorScheme.onSurface else Muted
+    val patchColor = if (isActive || isSelected) Primary else Muted.copy(alpha = 0.5f)
+
+    Box(
+        modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(bg)
+            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(8.dp),
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            Text(
+                title,
+                style = MaterialTheme.typography.labelMedium,
+                color = nameColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                patchName,
+                style = MaterialTheme.typography.labelSmall,
+                color = patchColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PartControlPanel(
     vm: CompanionViewModel,
     partIndex: Int,
-    title: String,
-    isMain: Boolean,
-    minListHeight: Float,
+    onPickSound: () -> Unit,
 ) {
     val state by vm.state.collectAsState()
     val perf = state.performance
@@ -130,32 +246,25 @@ private fun PartBody(
     val part = perf.parts[partIndex]
     val patch = Patches.find(part.patchMsb, part.patchLsb, part.patchPc)
     val zone = perf.zones[partIndex]
+    // Reset sheet state when switching parts
+    var showShapingSheet by remember(partIndex) { mutableStateOf(false) }
+    val shapingSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.part_active), Modifier.weight(1f))
-        Switch(checked = enabled, onCheckedChange = { vm.setPartEnabled(partIndex, it) })
+    if (partIndex != 0) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.part_active), Modifier.weight(1f))
+            Switch(checked = enabled, onCheckedChange = { vm.setPartEnabled(partIndex, it) })
+        }
+        Spacer(Modifier.height(6.dp))
     }
-    Spacer(Modifier.height(6.dp))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.part_channel, part.channel), Modifier.weight(1f), color = Muted)
-        Text(stringResource(R.string.part_patch, patch?.name ?: "—"))
-    }
-    Spacer(Modifier.height(8.dp))
 
-    // Inline sound library — always shown for the main channel and inside
-    // each part's expand area for the layered/split parts.
-    Text(
-        stringResource(R.string.section_library_for, title),
-        style = androidx.compose.material3.MaterialTheme.typography.titleSmall,
-    )
-    Spacer(Modifier.height(6.dp))
-    PatchLibrary(
-        vm = vm,
-        partIndex = partIndex,
-        minListHeight = minListHeight.dp,
-    )
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.part_channel, part.channel), color = Muted, modifier = Modifier.weight(1f))
+        GhostButton(text = patch?.name ?: stringResource(R.string.btn_pick_sound), onClick = onPickSound)
+    }
 
     Spacer(Modifier.height(12.dp))
+
     LabeledSlider(
         stringResource(R.string.slider_volume), part.volume,
         onValueChange = { v -> vm.updatePart(partIndex) { it.copy(volume = v) } },
@@ -181,7 +290,6 @@ private fun PartBody(
         onReset = { vm.resetChorus(partIndex) },
     )
 
-    // Split / Zone
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.zone_split), Modifier.weight(1f))
         Switch(checked = zone.enabled, onCheckedChange = { vm.setZoneEnabled(partIndex, it) })
@@ -200,18 +308,36 @@ private fun PartBody(
     }
 
     Spacer(Modifier.height(12.dp))
-    SoundShapingPanel(vm = vm, partIndex = partIndex, part = part)
+
+    // 3. Sound shaping opens as a bottom sheet instead of expanding inline
+    GhostButton(
+        text = stringResource(R.string.section_sound_shaping),
+        onClick = { showShapingSheet = true },
+    )
+
+    if (showShapingSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showShapingSheet = false },
+            sheetState = shapingSheetState,
+        ) {
+            SoundShapingSheet(vm = vm, partIndex = partIndex, part = part)
+        }
+    }
 }
 
 @Composable
-private fun SoundShapingPanel(vm: CompanionViewModel, partIndex: Int, part: PartConfig) {
-    ExpandableSectionCard(
-        title = stringResource(R.string.section_sound_shaping),
-        stateKey = "perf-shape-$partIndex",
-        initiallyExpanded = false,
+private fun SoundShapingSheet(vm: CompanionViewModel, partIndex: Int, part: PartConfig) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 24.dp),
     ) {
+        Text(stringResource(R.string.section_sound_shaping), style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(4.dp))
         Text(stringResource(R.string.sound_shaping_intro), color = Muted)
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         LabeledSlider(
             stringResource(R.string.slider_expression), part.expression,
             onValueChange = { v -> vm.updatePart(partIndex) { it.copy(expression = v) } },
@@ -286,7 +412,7 @@ private fun SoundShapingPanel(vm: CompanionViewModel, partIndex: Int, part: Part
                 vm.pushMonoMode(partIndex)
             })
         }
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(12.dp))
         PrimaryButton(text = stringResource(R.string.btn_reset_cc), onClick = { vm.resetPartCC(partIndex) })
     }
 }

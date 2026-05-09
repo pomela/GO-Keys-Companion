@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.companion.gokeys.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
@@ -30,29 +32,39 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.companion.gokeys.ui.theme.Border
 import com.companion.gokeys.ui.theme.MutedSurface
 import com.companion.gokeys.ui.theme.Primary
+import com.companion.gokeys.ui.theme.SliderThumb
 import com.companion.gokeys.ui.theme.Success
 import com.companion.gokeys.ui.theme.SurfaceVariant
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @Composable
@@ -217,9 +229,10 @@ fun StatusDot(connected: Boolean) {
 }
 
 /**
- * Slider with a label and value read-out.  When [onReset] is non-null an
- * inline ↺ button restores the slider to its individual default and the
- * caller is expected to push the matching MIDI message immediately.
+ * Single-row slider: label overlaid on the left of the track, value centred,
+ * reset button to the right.  Uses a bar-shaped thumb in [SliderThumb] colour.
+ * Text composables don't consume pointer events, so they pass touches through
+ * to the underlying Slider.
  */
 @Composable
 fun LabeledSlider(
@@ -230,47 +243,90 @@ fun LabeledSlider(
     range: IntRange = 0..127,
     onReset: (() -> Unit)? = null,
 ) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                label,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                value.toString(),
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            if (onReset != null) {
-                Spacer(Modifier.width(6.dp))
-                Box(
-                    Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(SurfaceVariant)
-                        .clickable { onReset() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        Icons.Default.Refresh,
-                        contentDescription = "Reset",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(16.dp),
+    // rememberUpdatedState ensures the SliderState's onValueChangeFinished lambda
+    // always calls the latest callback even though SliderState is created once.
+    val finishedRef = rememberUpdatedState(onValueChangeFinished)
+    val changeRef = rememberUpdatedState(onValueChange)
+
+    val sliderState = remember(range.first, range.last) {
+        SliderState(
+            value = value.toFloat(),
+            valueRange = range.first.toFloat()..range.last.toFloat(),
+            onValueChangeFinished = { finishedRef.value?.invoke() },
+        )
+    }
+    LaunchedEffect(sliderState) {
+        snapshotFlow { sliderState.value.toInt() }
+            .distinctUntilChanged()
+            .collect { changeRef.value(it) }
+    }
+    // Sync external value changes (e.g. after Reset CC) into the slider state.
+    LaunchedEffect(value) {
+        if (sliderState.value.toInt() != value) sliderState.value = value.toFloat()
+    }
+
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.weight(1f)) {
+            Slider(
+                state = sliderState,
+                modifier = Modifier.fillMaxWidth(),
+                thumb = {
+                    // Thick vertical-bar thumb in a contrasting colour
+                    Box(
+                        Modifier
+                            .width(5.dp)
+                            .height(28.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(SliderThumb),
                     )
-                }
+                },
+                colors = SliderDefaults.colors(
+                    activeTrackColor = Primary.copy(alpha = 0.65f),
+                    inactiveTrackColor = SurfaceVariant,
+                    thumbColor = SliderThumb,
+                ),
+            )
+            // Label — left, passes through touch events to the Slider below
+            Text(
+                text = label,
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 8.dp, end = 56.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // Value — centred
+            Text(
+                text = value.toString(),
+                modifier = Modifier.align(Alignment.Center),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+            )
+        }
+        if (onReset != null) {
+            Spacer(Modifier.width(4.dp))
+            Box(
+                Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(SurfaceVariant)
+                    .clickable { onReset() },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = "Reset",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(16.dp),
+                )
             }
         }
-        Slider(
-            value = value.toFloat(),
-            onValueChange = { onValueChange(it.toInt()) },
-            onValueChangeFinished = { onValueChangeFinished?.invoke() },
-            valueRange = range.first.toFloat()..range.last.toFloat(),
-        )
     }
 }
 
