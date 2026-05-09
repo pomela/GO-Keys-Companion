@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Cable
-import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
@@ -83,7 +83,7 @@ fun App(vm: CompanionViewModel) {
                 title = { Text(stringResource(R.string.title_app), style = MaterialTheme.typography.titleLarge) },
                 actions = {
                     IconButton(onClick = { nav.navigate("help") }) {
-                        Icon(Icons.Default.HelpOutline, contentDescription = stringResource(R.string.cd_help))
+                        Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = stringResource(R.string.cd_help))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
