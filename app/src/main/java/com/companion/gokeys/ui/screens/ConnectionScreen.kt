@@ -40,6 +40,7 @@ import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
 import com.companion.gokeys.ui.components.StatusDot
 import com.companion.gokeys.ui.theme.Border
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Muted
 import com.companion.gokeys.ui.theme.SurfaceVariant
 import com.companion.gokeys.viewmodel.CompanionViewModel
@@ -89,6 +90,7 @@ fun ConnectionScreen(vm: CompanionViewModel) {
         }
 
         SectionCard(title = stringResource(R.string.section_model)) {
+            val accentColor = LocalSliderThumb.current
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("GP" to stringResource(R.string.model_gp_label),
                        "GK" to stringResource(R.string.model_gk_label)).forEach { pair ->
@@ -96,7 +98,7 @@ fun ConnectionScreen(vm: CompanionViewModel) {
                     Box(
                         Modifier
                             .clip(RoundedCornerShape(10.dp))
-                            .background(if (sel) MaterialTheme.colorScheme.primary else SurfaceVariant)
+                            .background(if (sel) accentColor else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { vm.setModel(pair.first) }
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     ) {
@@ -112,7 +114,7 @@ fun ConnectionScreen(vm: CompanionViewModel) {
 
         SectionCard(title = stringResource(R.string.section_usb)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                GhostButton(text = stringResource(R.string.btn_refresh_usb),
+                PrimaryButton(text = stringResource(R.string.btn_refresh_usb),
                     onClick = { usbList = vm.refreshUsb() })
             }
             Spacer(Modifier.size(8.dp))

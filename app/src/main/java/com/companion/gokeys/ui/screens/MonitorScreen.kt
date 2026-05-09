@@ -20,10 +20,9 @@ import androidx.compose.ui.unit.dp
 import com.companion.gokeys.R
 import com.companion.gokeys.midi.MidiDirection
 import com.companion.gokeys.midi.RolandSysEx
-import com.companion.gokeys.ui.components.GhostButton
+import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
 import com.companion.gokeys.ui.theme.Muted
-import com.companion.gokeys.ui.theme.SurfaceVariant
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -41,7 +40,7 @@ fun MonitorScreen(vm: CompanionViewModel) {
         SectionCard(title = stringResource(R.string.monitor_label)) {
             Row {
                 Text(stringResource(R.string.monitor_count, entries.size), color = Muted, modifier = Modifier.weight(1f))
-                GhostButton(text = stringResource(R.string.btn_clear), onClick = { vm.service.clearMonitor() })
+                PrimaryButton(text = stringResource(R.string.btn_clear), onClick = { vm.service.clearMonitor() })
             }
         }
         LazyColumn(state = state, modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
@@ -49,7 +48,7 @@ fun MonitorScreen(vm: CompanionViewModel) {
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 2.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(SurfaceVariant)
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(8.dp),
                 ) {
                     Text(

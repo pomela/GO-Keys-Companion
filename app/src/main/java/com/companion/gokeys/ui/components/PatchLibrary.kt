@@ -91,6 +91,10 @@ private fun categoryLabel(cat: String) = when (cat) {
     "FX"  -> "FX (Effects)"
     "SFX" -> "SFX (Sound FX)"
     "SMP" -> "SMP (Sample)"
+    "ORC" -> "ORC (Orchestra)"
+    "BNS" -> "BNS (Bonus)"
+    "GM2" -> "GM2 (General MIDI)"
+    "GMV" -> "GMV (GM Variation)"
     else  -> cat
 }
 

@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,10 +50,9 @@ import com.companion.gokeys.ui.components.PatchLibrary
 import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
 import com.companion.gokeys.ui.theme.Border
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Muted
 import com.companion.gokeys.ui.theme.MutedSurface
-import com.companion.gokeys.ui.theme.Primary
-import com.companion.gokeys.ui.theme.SurfaceVariant
 import com.companion.gokeys.viewmodel.CompanionViewModel
 
 @Composable
@@ -164,7 +165,7 @@ private fun MasterStrip(state: AppState, vm: CompanionViewModel, onShowDemo: () 
             )
             Box(Modifier.weight(1f))
             PrimaryButton(stringResource(R.string.btn_panic), onClick = { vm.panic() })
-            GhostButton("Demo", onClick = onShowDemo)
+            PrimaryButton("Demo", onClick = onShowDemo)
         }
     }
 }
@@ -172,7 +173,7 @@ private fun MasterStrip(state: AppState, vm: CompanionViewModel, onShowDemo: () 
 @Composable
 private fun TempoControl(nudge: Int, onDown: () -> Unit, onUp: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        GhostButton("−", onClick = onDown)
+        PrimaryButton("−", onClick = onDown)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 4.dp),
@@ -184,12 +185,15 @@ private fun TempoControl(nudge: Int, onDown: () -> Unit, onUp: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
-        GhostButton("+", onClick = onUp)
+        PrimaryButton("+", onClick = onUp)
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun DemoSheetContent(vm: CompanionViewModel, onDismiss: () -> Unit) {
+    val playingDemo by vm.playingDemo.collectAsState()
+    val accentColor = LocalSliderThumb.current
     Column(
         Modifier
             .fillMaxWidth()
@@ -200,11 +204,12 @@ private fun DemoSheetContent(vm: CompanionViewModel, onDismiss: () -> Unit) {
         Spacer(Modifier.height(4.dp))
         Text(stringResource(R.string.demo_intro), color = Muted)
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             for (d in 0..4) {
                 PrimaryButton(
                     text = stringResource(R.string.demo_song, d + 1),
                     onClick = { vm.playDemoSong(d); onDismiss() },
+                    containerColor = if (playingDemo == d) accentColor else null,
                 )
             }
         }
@@ -213,7 +218,6 @@ private fun DemoSheetContent(vm: CompanionViewModel, onDismiss: () -> Unit) {
     }
 }
 
-// 4. Fixed: fillMaxWidth on Column so Text can ellipsize; patch name uses labelSmall
 @Composable
 private fun PartSelectorCard(
     title: String,
@@ -223,14 +227,26 @@ private fun PartSelectorCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val accentColor = LocalSliderThumb.current
+    val mainColor = MaterialTheme.colorScheme.primary
+
     val bg = when {
-        isSelected -> Primary.copy(alpha = 0.15f)
-        !isActive -> MutedSurface
-        else -> SurfaceVariant
+        isSelected -> mainColor.copy(alpha = 0.15f)
+        isActive -> accentColor.copy(alpha = 0.15f)
+        else -> MutedSurface
     }
-    val borderColor = if (isSelected) Primary else Border
+    val borderColor = when {
+        isSelected -> mainColor
+        isActive -> accentColor
+        else -> Border
+    }
     val nameColor = if (isActive || isSelected) MaterialTheme.colorScheme.onSurface else Muted
-    val patchColor = if (isActive || isSelected) Primary else Muted.copy(alpha = 0.5f)
+    val patchColor = when {
+        isSelected && isActive -> accentColor
+        isSelected -> mainColor
+        isActive -> accentColor
+        else -> Muted.copy(alpha = 0.5f)
+    }
 
     Box(
         modifier
@@ -333,8 +349,7 @@ private fun PartControlPanel(
 
     Spacer(Modifier.height(12.dp))
 
-    // 3. Sound shaping opens as a bottom sheet instead of expanding inline
-    GhostButton(
+    PrimaryButton(
         text = stringResource(R.string.section_sound_shaping),
         onClick = { showShapingSheet = true },
     )

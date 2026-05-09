@@ -8,8 +8,10 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 @Serializable
 data class PreferencesConfig(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val primaryPresetIndex: Int = 0,
-    val sliderThumbPresetIndex: Int = 0,
+    val mainPresetIndex: Int = 0,      // index into PrimaryPresets; -1 = custom
+    val mainCustomHex: String = "",     // 6-char RRGGBB, empty = use preset
+    val accentPresetIndex: Int = 0,    // index into ThumbPresets; -1 = custom
+    val accentCustomHex: String = "",   // 6-char RRGGBB, empty = use preset
 )
 
 @Serializable

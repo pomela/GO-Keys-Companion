@@ -13,6 +13,26 @@ import com.companion.gokeys.data.ThemeMode
 
 val LocalSliderThumb = compositionLocalOf { SliderThumb }
 
+fun PreferencesConfig.mainColor(): Color {
+    if (mainCustomHex.length == 6) {
+        val r = mainCustomHex.substring(0, 2).toIntOrNull(16)
+        val g = mainCustomHex.substring(2, 4).toIntOrNull(16)
+        val b = mainCustomHex.substring(4, 6).toIntOrNull(16)
+        if (r != null && g != null && b != null) return Color(r, g, b)
+    }
+    return PrimaryPresets.getOrElse(mainPresetIndex) { Primary }
+}
+
+fun PreferencesConfig.accentColor(): Color {
+    if (accentCustomHex.length == 6) {
+        val r = accentCustomHex.substring(0, 2).toIntOrNull(16)
+        val g = accentCustomHex.substring(2, 4).toIntOrNull(16)
+        val b = accentCustomHex.substring(4, 6).toIntOrNull(16)
+        if (r != null && g != null && b != null) return Color(r, g, b)
+    }
+    return ThumbPresets.getOrElse(accentPresetIndex) { SliderThumb }
+}
+
 private fun buildDarkScheme(primary: Color) = darkColorScheme(
     primary = primary,
     onPrimary = PrimaryFg,
@@ -51,8 +71,8 @@ fun GoKeysTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
-    val primary = PrimaryPresets.getOrElse(preferences.primaryPresetIndex) { Primary }
-    val thumb = ThumbPresets.getOrElse(preferences.sliderThumbPresetIndex) { SliderThumb }
+    val primary = preferences.mainColor()
+    val thumb = preferences.accentColor()
     val scheme = if (isDark) buildDarkScheme(primary) else buildLightScheme(primary)
 
     CompositionLocalProvider(LocalSliderThumb provides thumb) {

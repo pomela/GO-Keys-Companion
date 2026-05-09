@@ -187,11 +187,17 @@ fun ModelBadge(label: String) {
 }
 
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, enabled: Boolean = true) {
+fun PrimaryButton(
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    containerColor: Color? = null,
+) {
+    val bg = containerColor ?: if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
     Box(
         Modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(if (enabled) Primary else SurfaceVariant)
+            .background(bg)
             .clickable(enabled = enabled) { onClick() }
             .padding(horizontal = 16.dp, vertical = 10.dp),
     ) {
@@ -209,7 +215,7 @@ fun GhostButton(text: String, onClick: () -> Unit) {
         Modifier
             .clip(RoundedCornerShape(10.dp))
             .border(1.dp, Border, RoundedCornerShape(10.dp))
-            .background(MutedSurface)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .clickable { onClick() }
             .padding(horizontal = 14.dp, vertical = 8.dp),
     ) {
@@ -271,32 +277,27 @@ fun LabeledSlider(
         Box(Modifier.weight(1f)) {
             val thumbColor = LocalSliderThumb.current
             val trackColor = MaterialTheme.colorScheme.primary
+            val surfVariant = MaterialTheme.colorScheme.surfaceVariant
             Slider(
                 state = sliderState,
                 modifier = Modifier.fillMaxWidth(),
                 thumb = {
                     Box(
                         Modifier
-                            .size(37.dp)
-                            .clip(CircleShape)
+                            .width(6.dp)
+                            .height(37.dp)
+                            .clip(RoundedCornerShape(3.dp))
                             .background(thumbColor),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = sliderState.value.toInt().toString(),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                        )
-                    }
+                    )
                 },
                 track = { state ->
                     SliderDefaults.Track(
                         sliderState = state,
-                        modifier = Modifier.height(6.dp),
+                        modifier = Modifier.height(8.dp),
                         thumbTrackGapSize = 0.dp,
                         colors = SliderDefaults.colors(
-                            activeTrackColor = trackColor.copy(alpha = 0.65f),
-                            inactiveTrackColor = SurfaceVariant,
+                            activeTrackColor = trackColor.copy(alpha = 0.75f),
+                            inactiveTrackColor = surfVariant,
                             thumbColor = thumbColor,
                         ),
                     )
@@ -307,11 +308,18 @@ fun LabeledSlider(
                 text = label,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = 8.dp, end = 16.dp),
+                    .padding(start = 8.dp, end = 56.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+            // Value — centred over the track
+            Text(
+                text = value.toString(),
+                modifier = Modifier.align(Alignment.Center),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
         if (onReset != null) {

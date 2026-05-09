@@ -22,7 +22,7 @@ import com.companion.gokeys.data.LoopMix
 import com.companion.gokeys.ui.components.LabeledSlider
 import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
-import com.companion.gokeys.ui.theme.SurfaceVariant
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.viewmodel.CompanionViewModel
 
 @Composable
@@ -48,12 +48,13 @@ fun LoopMixScreen(vm: CompanionViewModel) {
             }
         }
         SectionCard(title = stringResource(R.string.loopmix_style)) {
+            val accentColor = LocalSliderThumb.current
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 items(LoopMix.STYLES.size) { i ->
                     val sel = i == lm.styleIdx
                     Box(
                         Modifier.clip(RoundedCornerShape(8.dp))
-                            .background(if (sel) MaterialTheme.colorScheme.primary else SurfaceVariant)
+                            .background(if (sel) accentColor else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { vm.loopMixSetStyle(i) }
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                     ) {
@@ -64,12 +65,13 @@ fun LoopMixScreen(vm: CompanionViewModel) {
             }
         }
         SectionCard(title = stringResource(R.string.loopmix_key)) {
+            val accentColor = LocalSliderThumb.current
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 items(LoopMix.KEYS.size) { i ->
                     val sel = i == lm.keyIdx
                     Box(
                         Modifier.clip(RoundedCornerShape(8.dp))
-                            .background(if (sel) MaterialTheme.colorScheme.primary else SurfaceVariant)
+                            .background(if (sel) accentColor else MaterialTheme.colorScheme.surfaceVariant)
                             .clickable { vm.loopMixSetKey(i) }
                             .padding(horizontal = 12.dp, vertical = 8.dp),
                     ) {

@@ -50,6 +50,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val _preferences = MutableStateFlow(PreferencesConfig())
     val preferences: StateFlow<PreferencesConfig> = _preferences.asStateFlow()
 
+    private val _playingDemo = MutableStateFlow(-1)
+    val playingDemo: StateFlow<Int> = _playingDemo.asStateFlow()
+
     // ---- Macro recording ---------------------------------------------------
 
     private val _recording = MutableStateFlow(false)
@@ -340,6 +343,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     // ---- Demo songs --------------------------------------------------------
 
     fun playDemoSong(index: Int) {
+        _playingDemo.value = index
         service.sendAll(RolandSysEx.selectDemoSong(index))
     }
 

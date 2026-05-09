@@ -143,8 +143,8 @@
     <string name="pref_theme_system">System</string>
     <string name="pref_theme_light">Light</string>
     <string name="pref_theme_dark">Dark</string>
-    <string name="pref_primary_color">Accent color</string>
-    <string name="pref_thumb_color">Slider color</string>
+    <string name="pref_primary_color">Main color</string>
+    <string name="pref_thumb_color">Accent color</string>
 
     <!-- Profiles -->
     <string name="section_profiles">Profiles</string>

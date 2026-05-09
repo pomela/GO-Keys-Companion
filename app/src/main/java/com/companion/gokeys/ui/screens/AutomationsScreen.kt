@@ -21,8 +21,8 @@ import com.companion.gokeys.data.Automation
 import com.companion.gokeys.ui.components.GhostButton
 import com.companion.gokeys.ui.components.PrimaryButton
 import com.companion.gokeys.ui.components.SectionCard
+import com.companion.gokeys.ui.theme.LocalSliderThumb
 import com.companion.gokeys.ui.theme.Muted
-import com.companion.gokeys.ui.theme.SurfaceVariant
 import com.companion.gokeys.viewmodel.CompanionViewModel
 import java.util.UUID
 
@@ -87,14 +87,18 @@ fun AutomationsScreen(vm: CompanionViewModel) {
         LazyColumn(Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
             items(automations, key = { it.id }) { a ->
                 SectionCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    ) {
                         Column(Modifier.weight(1f)) {
                             Text(a.name, style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(2.dp))
                             Text("${a.triggerType} → ${a.actionType}",
                                 color = Muted, style = MaterialTheme.typography.bodyMedium)
                         }
                         Switch(checked = a.enabled, onCheckedChange = { vm.toggleAutomation(a.id) })
-                        Spacer(Modifier.width(6.dp))
+                        Spacer(Modifier.width(8.dp))
                         GhostButton(text = stringResource(R.string.btn_delete), onClick = { vm.deleteAutomation(a.id) })
                     }
                 }
@@ -105,12 +109,13 @@ fun AutomationsScreen(vm: CompanionViewModel) {
 
 @Composable
 private fun ChipRow(opts: List<String>, sel: String, onPick: (String) -> Unit) {
+    val accentColor = LocalSliderThumb.current
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         opts.forEach { v ->
             val isSel = v == sel
             Box(
                 Modifier.clip(RoundedCornerShape(8.dp))
-                    .background(if (isSel) MaterialTheme.colorScheme.primary else SurfaceVariant)
+                    .background(if (isSel) accentColor else MaterialTheme.colorScheme.surfaceVariant)
                     .clickable { onPick(v) }
                     .padding(horizontal = 10.dp, vertical = 6.dp),
             ) {
