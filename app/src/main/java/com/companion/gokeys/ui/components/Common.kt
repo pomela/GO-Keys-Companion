@@ -54,6 +54,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -281,7 +282,11 @@ fun LabeledSlider(
     ) {
         Box(Modifier.weight(1f)) {
             val mainColor = MaterialTheme.colorScheme.primary
-            val surfVariant = MaterialTheme.colorScheme.surfaceVariant
+            val isLight = MaterialTheme.colorScheme.background.luminance() > 0.5f
+            val inactiveTrack = if (isLight)
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+            else
+                MaterialTheme.colorScheme.surfaceVariant
             val thumbColor = if (isModified) accentColor else mainColor
             Slider(
                 state = sliderState,
@@ -302,7 +307,7 @@ fun LabeledSlider(
                         thumbTrackGapSize = 0.dp,
                         colors = SliderDefaults.colors(
                             activeTrackColor = mainColor.copy(alpha = 0.85f),
-                            inactiveTrackColor = surfVariant,
+                            inactiveTrackColor = inactiveTrack,
                             thumbColor = mainColor,
                         ),
                     )

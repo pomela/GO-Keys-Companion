@@ -280,6 +280,8 @@ private fun PartControlPanel(
     val part = perf.parts[partIndex]
     val patch = Patches.find(part.patchMsb, part.patchLsb, part.patchPc)
     val zone = perf.zones[partIndex]
+    val accentColor = LocalSliderThumb.current
+    val mainColor = MaterialTheme.colorScheme.primary
     // Reset sheet state when switching parts
     var showShapingSheet by remember(partIndex) { mutableStateOf(false) }
     val shapingSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -292,7 +294,22 @@ private fun PartControlPanel(
 
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.part_channel, part.channel), color = Muted, modifier = Modifier.weight(1f))
-        GhostButton(text = patch?.name ?: stringResource(R.string.btn_pick_sound), onClick = onPickSound)
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(accentColor)
+                .border(1.dp, Border, RoundedCornerShape(10.dp))
+                .clickable { onPickSound() }
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+        ) {
+            Text(
+                patch?.name ?: stringResource(R.string.btn_pick_sound),
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 
     Spacer(Modifier.height(12.dp))
@@ -322,9 +339,18 @@ private fun PartControlPanel(
         onReset = { vm.resetChorus(partIndex) }, defaultValue = 0,
     )
 
+    val zoneModified = zone.enabled && (zone.keyLow != 0 || zone.keyHigh != 127)
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(stringResource(R.string.zone_split), Modifier.weight(1f))
-        Switch(checked = zone.enabled, onCheckedChange = { vm.setZoneEnabled(partIndex, it) })
+        Switch(
+            checked = zone.enabled,
+            onCheckedChange = { vm.setZoneEnabled(partIndex, it) },
+            colors = if (zoneModified) SwitchDefaults.colors(
+                checkedThumbColor = accentColor,
+                checkedTrackColor = accentColor.copy(alpha = 0.5f),
+                checkedBorderColor = accentColor.copy(alpha = 0.7f),
+            ) else SwitchDefaults.colors(),
+        )
     }
     if (zone.enabled) {
         LabeledSlider(
@@ -343,10 +369,26 @@ private fun PartControlPanel(
 
     Spacer(Modifier.height(12.dp))
 
-    PrimaryButton(
-        text = stringResource(R.string.section_sound_shaping),
-        onClick = { showShapingSheet = true },
-    )
+    val shapingModified = part.expression != 127 || part.cutoff != 64 || part.resonance != 64 ||
+        part.attack != 64 || part.decay != 64 || part.release != 64 ||
+        part.vibratoRate != 64 || part.vibratoDepth != 64 || part.vibratoDelay != 64 ||
+        part.portamentoTime != 0 || part.portamentoOn || part.mono
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Box(
+            Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(if (shapingModified) accentColor else mainColor)
+                .border(1.dp, Border, RoundedCornerShape(10.dp))
+                .clickable { showShapingSheet = true }
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            Text(
+                stringResource(R.string.section_sound_shaping),
+                color = MaterialTheme.colorScheme.onPrimary,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+    }
 
     if (showShapingSheet) {
         ModalBottomSheet(

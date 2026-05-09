@@ -370,6 +370,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun tempoDown() {
+        if (_state.value.master.tempoNudge <= 0) return
         updateMaster { it.copy(tempoNudge = it.tempoNudge - 1) }
         service.send(RolandSysEx.tempoDown(model()))
     }
@@ -378,7 +379,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         _preferences.value = config
         viewModelScope.launch { repo.savePreferences(config) }
     }
-    fun demoOff() = service.send(RolandSysEx.demoOff(model()))
+    fun demoOff() {
+        _playingDemo.value = -1
+        service.send(RolandSysEx.demoOff(model()))
+    }
 
     // ---- LoopMix -----------------------------------------------------------
 
