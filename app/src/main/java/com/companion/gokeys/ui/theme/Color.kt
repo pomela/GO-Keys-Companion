@@ -5,7 +5,6 @@ import androidx.compose.ui.graphics.Color
 val Background = Color(0xFF0D0F14)
 val Surface = Color(0xFF171A22)
 val SurfaceVariant = Color(0xFF1F2330)
-val MutedSurface = Color(0xFF1A1D27)
 val Border = Color(0xFF262A36)
 
 val Primary = Color(0xFFEB5752)  // Roland red, 12% lighter (default main)
