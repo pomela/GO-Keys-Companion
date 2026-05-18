@@ -8,9 +8,9 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 @Serializable
 data class PreferencesConfig(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val mainPresetIndex: Int = 0,      // index into PrimaryPresets; -1 = custom
+    val mainPresetIndex: Int = 0,      // index into ColorPresets; -1 = mono (theme-adaptive)
     val mainCustomHex: String = "",     // 6-char RRGGBB, empty = use preset
-    val accentPresetIndex: Int = 0,    // index into ThumbPresets; -1 = custom
+    val accentPresetIndex: Int = 3,    // index into ColorPresets; -1 = mono; default = blue
     val accentCustomHex: String = "",   // 6-char RRGGBB, empty = use preset
 )
 
@@ -143,7 +143,7 @@ data class Macro(
  * Lightweight automation rule.
  *
  * Trigger types:
- *   "noteOn" — note in [paramA..paramB] on channel C
+ *   "noteOn" — note in on channel C
  *   "cc"     — controller `paramA` value crossing threshold paramB
  *   "sysex"  — incoming SysEx whose first N bytes match a hex prefix
  *   "patch"  — when a specific patch is selected (paramA=msb, paramB=lsb, paramC=pc)

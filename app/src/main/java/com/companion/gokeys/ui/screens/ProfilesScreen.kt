@@ -116,6 +116,11 @@ private fun PreferencesCard(prefs: PreferencesConfig, onUpdate: (PreferencesConf
                     onClick = { onUpdate(prefs.copy(mainPresetIndex = index, mainCustomHex = "")) },
                 )
             }
+            ColorDot(
+                color = MaterialTheme.colorScheme.onSurface,
+                selected = prefs.mainPresetIndex < 0,
+                onClick = { onUpdate(prefs.copy(mainPresetIndex = -1, mainCustomHex = "")) },
+            )
         }
         Spacer(Modifier.height(12.dp))
         Text(stringResource(R.string.pref_thumb_color), style = MaterialTheme.typography.labelMedium, color = Muted)
@@ -128,6 +133,11 @@ private fun PreferencesCard(prefs: PreferencesConfig, onUpdate: (PreferencesConf
                     onClick = { onUpdate(prefs.copy(accentPresetIndex = index, accentCustomHex = "")) },
                 )
             }
+            ColorDot(
+                color = MaterialTheme.colorScheme.onSurface,
+                selected = prefs.accentPresetIndex < 0,
+                onClick = { onUpdate(prefs.copy(accentPresetIndex = -1, accentCustomHex = "")) },
+            )
         }
     }
 }
